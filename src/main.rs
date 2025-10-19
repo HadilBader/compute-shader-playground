@@ -20,6 +20,7 @@ use bevy::render::renderer::{RenderContext, RenderDevice};
 use bevy::render::texture::GpuImage;
 use bevy::render::{Render, RenderApp, RenderSet, render_graph};
 use std::borrow::Cow;
+use bevy::log::info;
 
 const SHADER_PATH: &str = "shader.wgsl";
 const DISPLAY_FACTOR: u32 = 4;
@@ -44,7 +45,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         },
         TextureDimension::D2,
         &[255, 0, 0, 255],
-        TextureFormat::R32Float,
+        TextureFormat::Rgba8Unorm,
         RenderAssetUsages::RENDER_WORLD,
     );
 
@@ -52,6 +53,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
 
     let image_handle = images.add(image.clone());
+    
     commands.spawn((
         Sprite {
             image: image_handle.clone(),
@@ -126,7 +128,7 @@ impl FromWorld for ComputeShaderPipeline {
             "Image",
             &BindGroupLayoutEntries::single(
                 ShaderStages::COMPUTE,
-                texture_storage_2d(TextureFormat::R32Float, StorageTextureAccess::ReadWrite),
+                texture_storage_2d(TextureFormat::Rgba8Unorm, StorageTextureAccess::ReadWrite),
             ),
         );
 
@@ -178,7 +180,6 @@ impl render_graph::Node for ComputeShaderNode {
             pass.set_pipeline(cpipeline);
             pass.dispatch_workgroups(SIZE.0 / WORKGROUP_SIZE, SIZE.1 / WORKGROUP_SIZE, 1);
         }
-
         Ok(())
     }
 }
